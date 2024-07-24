@@ -2,7 +2,14 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
-@Schema()
+@Schema({
+  toJSON: {
+    transform: function (doc, ret) {
+      delete ret.password;
+      return ret;
+    },
+  },
+})
 export class User extends Document {
   @ApiProperty({ example: 'John Doe', description: 'The name of the user' })
   @Prop({ required: true })
@@ -18,6 +25,9 @@ export class User extends Document {
   })
   @Prop({ required: true, unique: true })
   email: string;
+
+  @Prop({ required: true })
+  password: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
