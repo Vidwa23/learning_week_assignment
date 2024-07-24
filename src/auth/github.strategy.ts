@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-github2';
 import { AuthService } from './auth.service';
@@ -22,21 +22,21 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     accessToken: string,
     refreshToken: string,
     profile: Profile,
-    done: Function,
+    done: (error: any, user?: any, info?: any) => void,
   ) {
-    const { id, username, emails } = profile;
-    const email = emails && emails.length > 0 ? emails[0].value : null;
+    try {
+      const { id, username, emails } = profile;
+      const email = emails && emails.length > 0 ? emails[0].value : null;
 
-    const user = await this.authService.validateGithubUser({
-      id,
-      username,
-      email,
-    });
+      const user = await this.authService.validateGithubUser({
+        id,
+        username,
+        email,
+      });
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid GitHub token');
+      done(null, user);
+    } catch (err) {
+      done(err, false);
     }
-
-    done(null, user);
   }
 }

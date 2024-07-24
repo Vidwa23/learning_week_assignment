@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { SignupAuthDto } from './dto/signup-auth.dto';
-import { LoginAuthDto } from './dto/login-auth.dto';
+
 import { User } from '../users/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
@@ -25,16 +25,17 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const { password: _, ...userJson } = newUser.toJSON();
+    delete newUser.password;
 
-    return userJson;
+    return newUser;
   }
 
   async validateUser(email: string, password: string): Promise<Partial<User>> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user.toJSON();
-      return result;
+      const userJson = user.toJSON();
+      delete userJson.password;
+      return userJson;
     }
     return null;
   }
@@ -54,8 +55,9 @@ export class AuthService {
         password: '', // no password for GitHub users
       });
     }
-    const { password, ...result } = user.toJSON();
-    return result;
+    const userJson = user.toJSON();
+    delete userJson.password;
+    return userJson;
   }
 
   async login(user: Partial<User>) {

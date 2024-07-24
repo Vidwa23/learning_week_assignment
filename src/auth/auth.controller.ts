@@ -1,16 +1,18 @@
 import {
   Controller,
-  Post,
   Get,
+  Post,
   Body,
   UseGuards,
   Req,
   UnauthorizedException,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupAuthDto } from './dto/signup-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -36,13 +38,15 @@ export class AuthController {
   @Get('github')
   @UseGuards(AuthGuard('github'))
   async githubLogin() {
-    // initiates the GitHub OAuth flow
+    // This method is intentionally left empty as the AuthGuard handles the redirect
   }
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
-  async githubCallback(@Req() req) {
+  async githubCallback(@Req() req, @Res() res: Response) {
     // handles the GitHub OAuth callback
-    return this.authService.login(req.user);
+    const user = req.user;
+    const token = await this.authService.login(user);
+    res.redirect(`http://localhost:3000?token=${token.access_token}`);
   }
 }
